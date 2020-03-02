@@ -7,7 +7,7 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      name: 'React app with apeech recognition'
+      name: 'React app with speech recognition'
     };
   }
 
