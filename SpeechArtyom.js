@@ -39,7 +39,7 @@ class SpeechArtyom extends Component {
         console.log("Artyom succesfully started !");
 
         Jarvis.initialize({
-            lang: "en-GB",
+            lang: "pt-PT",
             debug: true,
             continuous: true,
             soundex: true,
@@ -48,13 +48,13 @@ class SpeechArtyom extends Component {
             // Display loaded commands in the console
             console.log(Jarvis.getAvailableCommands());
 
-            Jarvis.say("Hello there, how are you?");
+            Jarvis.say("Olá, como você está?");
 
             _this.setState({
                 artyomActive: true
             });
         }).catch((err) => {
-            console.error("Oopsy daisy, this shouldn't happen !", err);
+            console.error("Oopsy daisy, você disse algo que não entendi !", err);
         });
     }
 
@@ -108,8 +108,8 @@ class SpeechArtyom extends Component {
               <p>In this very basic assistant, you can say hello and ask for some reports e.g `Generate report of April of this year`</p>
               
               {/* Voice commands action buttons */}
-              <input type="button" value="Start Artyom" disabled={this.state.artyomActive} onClick={this.startAssistant}/>
-              <input type="button" value="Stop Artyom" disabled={!this.state.artyomActive} onClick={this.stopAssistant}/>
+              <input type="button" value="Iniciar Artyom" disabled={this.state.artyomActive} onClick={this.startAssistant}/>
+              <input type="button" value="Parar Artyom" disabled={!this.state.artyomActive} onClick={this.stopAssistant}/>
 
               {/* Speech synthesis Area */}
 
@@ -118,7 +118,7 @@ class SpeechArtyom extends Component {
               <textarea rows="5" onChange={this.handleTextareaChange} value={this.state.textareaValue}/>
               <br/>
               {/* Read the text inside the textarea with artyom */}
-              <input type="button" value="Read Text" disabled={this.state.artyomIsReading} onClick={this.speakText}/>
+              <input type="button" value="Ler o texto" disabled={this.state.artyomIsReading} onClick={this.speakText}/>
           </div>
       )
     }

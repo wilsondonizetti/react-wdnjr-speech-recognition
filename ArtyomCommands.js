@@ -13,9 +13,9 @@ export default class ArtyomCommandsManager {
         // Here you can load all the commands that you want to Artyom
         return Artyom.addCommands([
             {
-                indexes: ["Hello", "Hi"],
+                indexes: ["Olá", "oi"],
                 action: () => {
-                    Artyom.say("Hello, how are you?");
+                    Artyom.say("Olá, como você está?");
                 }
             },
             {
@@ -23,6 +23,13 @@ export default class ArtyomCommandsManager {
                 smart: true,
                 action: () => {
                     Artyom.say("I'm fine, thanks for asking !");
+                }
+            },
+            {
+                indexes: ["Repetir"],
+                smart: true,
+                action: () => {
+                    Artyom.say("Ok. vou repetir a ultima entrada !");
                 }
             },
             {
