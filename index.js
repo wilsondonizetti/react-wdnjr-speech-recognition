@@ -12,7 +12,7 @@ class App extends Component {
     };
   }
 
-  render() {
+  render() { 
     return (
       <div>
         <Hello name={this.state.name} />
