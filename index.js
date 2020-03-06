@@ -20,7 +20,7 @@ class App extends Component {
         <p>
           Start editing to see some magic happen :)
         </p>
-        <Speech />
+        <SpeechArtyom />
       </div>
     );
   }

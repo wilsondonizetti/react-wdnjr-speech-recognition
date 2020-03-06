@@ -26,7 +26,7 @@ export default class ArtyomCommandsManager {
                 }
             },
             {
-                indexes: ["Repetir"],
+                indexes: ["Repetir", "repeat"],
                 smart: true,
                 action: () => {
                     Artyom.say("Ok. vou repetir a ultima entrada !");
@@ -41,6 +41,15 @@ export default class ArtyomCommandsManager {
                     Artyom.say(`Generating reports of ${month} ${year} `);
 
                     Artyom.say("Ready ! What were you expecting? write some code you lazy bear !");
+                }
+            },
+            {
+                indexes: ["iniciar pedido *", "pedido *"],
+                smart: true,
+                action: (i, order) => {
+                  console.log('i', i);
+                  console.log('order', order);
+                    Artyom.say(`Ok. vamos iniciar o pedido ${order}!`);
                 }
             },
         ]);
