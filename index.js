@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import Hello from './Hello';
 import Speech from './Speech';
 import SpeechArtyom from './SpeechArtyom';
+import SpeechWithRecorderAudio from './SpeechWithRecorderAudio';
 import './style.css';
 
 class App extends Component {
@@ -20,7 +21,7 @@ class App extends Component {
         <p>
           Start editing to see some magic happen :)
         </p>
-        <SpeechArtyom />
+        <SpeechWithRecorderAudio />
       </div>
     );
   }
