@@ -4,17 +4,17 @@ const SpeechWithRecorderAudio = (props) => {
   //let mediaRecorder;
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
-  const [mediaRecorder, setMediaRecorder] = useState(); 
+  const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
 
-  const playAudio = () =>{
-    const blob = new Blob(recordedChunks);
+  const playAudio = (dados) =>{
+    const blob = new Blob(dados);
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
       const base64data = reader.result;
       console.log('base64data', base64data);
-      console.log('recordedChunks', recordedChunks);
+      console.log('recordedChunks', dados);
 
       if (navigator.userAgent === 'logisticspwa') {
         const msg = { messageType: 'playsound', value: base64data };
@@ -38,7 +38,7 @@ const SpeechWithRecorderAudio = (props) => {
     const options = { 
       mimeType: 'audio/webm',
       audioBitsPerSecond : 44100,
-      bitsPerSecond: 8,
+      bitsPerSecond: 2,
     };
     mediaRecorder = new MediaRecorder(stream, options);
 
@@ -46,8 +46,15 @@ const SpeechWithRecorderAudio = (props) => {
       console.log('DATA', e.data);
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
+        //setRecordedChunks(recordedChunks);        
+        console.log('DATA size', e.data.size);
+        console.log('DATA state', mediaRecorder.state);
+        if(mediaRecorder.state === 'recording'){
+          mediaRecorder.stop();          
+          recognize();
+        }
       }
-      setRecordedChunks(recordedChunks);
+      
       //playAudio();
       //setTimeout(()=>{playAudio();}, 3000);
       if(shouldStop === true && stopped === false) {
@@ -59,7 +66,7 @@ const SpeechWithRecorderAudio = (props) => {
     mediaRecorder.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      
+      mediaRecorder.start(5000);
       console.log('stop', e);      
     };
 
@@ -96,21 +103,25 @@ const SpeechWithRecorderAudio = (props) => {
     if(mediaRecorder && mediaRecorder.state != 'recording'){
       mediaRecorder.start(5000);
       console.log(mediaRecorder.state);
-      setTimeout(event => {
-        console.log("stopping");
-        mediaRecorder.stop();
-        setRecordedChunks([]);
-        mediaRecorder.start(5000);
-      }, 5000);
+      // setTimeout(event => {
+      //   //console.log("stopping");
+      //   //mediaRecorder.stop();
+      //   //setRecordedChunks([]);
+      //   //mediaRecorder.start(5000);
+      // }, 5000);
     }      
   },[mediaRecorder]);
 
-  useEffect(()=>{
-    console.log('recordedChunks', recordedChunks);
+  // useEffect(()=>{
+  //   console.log('recordedChunks', recordedChunks);
+  // },[recordedChunks]);
 
-
-      
-  },[recordedChunks]);
+  const recognize = () => {
+    const dados = recordedChunks;
+    console.log('dados', dados);
+    playAudio(dados);
+    recordedChunks = [];
+  }
 
   return (<div>Recorder Audio</div>);
 }
