@@ -7,6 +7,30 @@ const SpeechWithRecorderAudio = (props) => {
   const [mediaRecorder, setMediaRecorder] = useState(); 
   const [recordedChunks, setRecordedChunks] = useState([]);
 
+  const playAudio = () =>{
+    const blob = new Blob(recordedChunks);
+    const reader = new FileReader();
+    reader.readAsDataURL(blob); 
+    reader.onloadend = () => {
+      const base64data = reader.result;
+      console.log('base64data', base64data);
+      console.log('recordedChunks', recordedChunks);
+
+      if (navigator.userAgent === 'logisticspwa') {
+        const msg = { messageType: 'playsound', value: base64data };
+        window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+      } else {
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.autoplay = false;
+        audio.oncanplay = (ev) => {
+            ev.currentTarget.play().then(() => {
+                console.log('play');
+            });
+        };
+      }
+    };    
+  };
+
  const handleSuccess = (stream) => {  
     console.log(stream);
     
@@ -17,11 +41,6 @@ const SpeechWithRecorderAudio = (props) => {
       bitsPerSecond: 8,
     };
     stream = new MediaRecorder(stream, options);
-    //stream.setAudioSource(MediaRecorder.AudioSource.MIC);
-    //stream.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-    //stream.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-    //stream.setAudioEncodingBitRate(16);
-    //stream.setAudioSamplingRate(44100);
 
     console.log('output',mediaRecorder);
 
@@ -31,7 +50,8 @@ const SpeechWithRecorderAudio = (props) => {
         recordedChunks.push(e.data);
       }
       setRecordedChunks(recordedChunks);
-
+      //playAudio();
+      setTimeout(()=>{playAudio();}, 3000);
       if(shouldStop === true && stopped === false) {
         mediaRecorder.stop();
         stopped = true;
@@ -41,9 +61,8 @@ const SpeechWithRecorderAudio = (props) => {
     stream.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      console.log('stop', e);
-      const audioBlob = new Blob(recordedChunks);
-      console.log('audioBlob', audioBlob);
+      
+      console.log('stop', e);      
     };
 
     stream.onresume = (e) => {
@@ -84,7 +103,9 @@ const SpeechWithRecorderAudio = (props) => {
       setTimeout(event => {
         console.log("stopping");
         mediaRecorder.stop();
-      }, 9000);
+        setRecordedChunks([]);
+        mediaRecorder.start(5000);
+      }, 5000);
     }      
   },[mediaRecorder]);
 
