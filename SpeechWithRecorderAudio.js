@@ -31,28 +31,21 @@ const SpeechWithRecorderAudio = (props) => {
     };    
   };
 
- const handleSuccess = (stream) => {  
-    console.log(stream);
-    
-    
+ const handleSuccess = (stream) => {          
     const options = { 
       mimeType: 'audio/webm',
       audioBitsPerSecond : 44100,
-      bitsPerSecond: 2,
+      bitsPerSecond: 8,
     };
     mediaRecorder = new MediaRecorder(stream, options);
 
     mediaRecorder.ondataavailable = (e) => {
-      console.log('DATA', e.data);
+      //console.log('DATA', e.data);
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
         //setRecordedChunks(recordedChunks);        
-        console.log('DATA size', e.data.size);
-        console.log('DATA state', mediaRecorder.state);
-        if(mediaRecorder.state === 'recording'){
-          mediaRecorder.stop();          
-          recognize();
-        }
+        //console.log('DATA size', e.data.size);
+        //console.log('DATA state', mediaRecorder.state);         
       }
       
       //playAudio();
@@ -66,7 +59,8 @@ const SpeechWithRecorderAudio = (props) => {
     mediaRecorder.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      mediaRecorder.start(5000);
+      //mediaRecorder.start(5000);
+      mediaRecorder.start();
       console.log('stop', e);      
     };
 
@@ -86,7 +80,11 @@ const SpeechWithRecorderAudio = (props) => {
       console.log('onerror', e);
     };
 
-    setMediaRecorder(mediaRecorder);    
+    setMediaRecorder(mediaRecorder);
+    mediaRecorder.start();
+    setTimeout(() => {
+      recognize();    
+    }, 5000);    
   };
 
   useEffect(()=>{
@@ -101,8 +99,8 @@ const SpeechWithRecorderAudio = (props) => {
   useEffect(()=>{
     console.log('eff', mediaRecorder);
     if(mediaRecorder && mediaRecorder.state != 'recording'){
-      mediaRecorder.start(5000);
-      console.log(mediaRecorder.state);
+      //mediaRecorder.start(5000);
+      //console.log(mediaRecorder.state);
       // setTimeout(event => {
       //   //console.log("stopping");
       //   //mediaRecorder.stop();
@@ -117,10 +115,16 @@ const SpeechWithRecorderAudio = (props) => {
   // },[recordedChunks]);
 
   const recognize = () => {
+    console.log('recognize', mediaRecorder.state);
+    mediaRecorder.stop();
     const dados = recordedChunks;
     console.log('dados', dados);
     playAudio(dados);
     recordedChunks = [];
+
+    setTimeout(() => {
+      recognize();    
+    }, 5000); 
   }
 
   return (<div>Recorder Audio</div>);
