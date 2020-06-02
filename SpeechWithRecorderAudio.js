@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 
 const SpeechWithRecorderAudio = (props) => {
-  //let mediaRecorder;
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
@@ -40,16 +39,10 @@ const SpeechWithRecorderAudio = (props) => {
     mediaRecorder = new MediaRecorder(stream, options);
 
     mediaRecorder.ondataavailable = (e) => {
-      //console.log('DATA', e.data);
       if (e.data.size > 0) {
-        recordedChunks.push(e.data);
-        //setRecordedChunks(recordedChunks);        
-        //console.log('DATA size', e.data.size);
-        //console.log('DATA state', mediaRecorder.state);         
+        recordedChunks.push(e.data);     
       }
-      
-      //playAudio();
-      //setTimeout(()=>{playAudio();}, 3000);
+
       if(shouldStop === true && stopped === false) {
         mediaRecorder.stop();
         stopped = true;
@@ -59,7 +52,6 @@ const SpeechWithRecorderAudio = (props) => {
     mediaRecorder.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      //mediaRecorder.start(5000);
       mediaRecorder.start();
       console.log('stop', e);      
     };
@@ -97,14 +89,6 @@ const SpeechWithRecorderAudio = (props) => {
 
   useEffect(()=>{
     if(mediaRecorder && mediaRecorder.state != 'recording'){
-      //mediaRecorder.start(5000);
-      //console.log(mediaRecorder.state);
-      // setTimeout(event => {
-      //   //console.log("stopping");
-      //   //mediaRecorder.stop();
-      //   //setRecordedChunks([]);
-      //   //mediaRecorder.start(5000);
-      // }, 5000);
     }      
   },[mediaRecorder]);
 
