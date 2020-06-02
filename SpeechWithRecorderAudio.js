@@ -2,8 +2,8 @@ import React, {useEffect, useState} from 'react';
 
 const SpeechWithRecorderAudio = (props) => {
   //let mediaRecorder;
-  let shouldStop = false;
-  let stopped = false;  
+  const [shouldStop, setShouldStop] = useState(false);
+  const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(); 
   const [recordedChunks, setRecordedChunks] = useState([]);
 
@@ -40,56 +40,52 @@ const SpeechWithRecorderAudio = (props) => {
       audioBitsPerSecond : 44100,
       bitsPerSecond: 8,
     };
-    stream = new MediaRecorder(stream, options);
+    mediaRecorder = new MediaRecorder(stream, options);
 
-    console.log('output',mediaRecorder);
-
-    stream.ondataavailable = (e) => {
+    mediaRecorder.ondataavailable = (e) => {
       console.log('DATA', e.data);
       if (e.data.size > 0) {
         recordedChunks.push(e.data);
       }
       setRecordedChunks(recordedChunks);
       //playAudio();
-      setTimeout(()=>{playAudio();}, 3000);
+      //setTimeout(()=>{playAudio();}, 3000);
       if(shouldStop === true && stopped === false) {
         mediaRecorder.stop();
         stopped = true;
       }
     };
 
-    stream.onstop = (e) => {
+    mediaRecorder.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
       
       console.log('stop', e);      
     };
 
-    stream.onresume = (e) => {
+    mediaRecorder.onresume = (e) => {
       console.log('onresume', e);
     };
 
-    stream.onstart = (e) => {
+    mediaRecorder.onstart = (e) => {
       console.log('onstart', e);
     };
 
-    stream.onpause = (e) => {
+    mediaRecorder.onpause = (e) => {
       console.log('onpause', e);
     };
 
-    stream.onerror = (e) => {
+    mediaRecorder.onerror = (e) => {
       console.log('onerror', e);
     };
 
-    setMediaRecorder(stream);
-
-    
+    setMediaRecorder(mediaRecorder);    
   };
 
   useEffect(()=>{
     navigator.mediaDevices.getUserMedia({audio: true, video: false})
     .then(handleSuccess)
-    .catch(function(err) {
+    .catch((err)=> {
       console.log('ERRO', err);
     }); 
     console.log('mount');
