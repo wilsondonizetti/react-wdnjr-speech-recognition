@@ -36,7 +36,7 @@ const SpeechWithRecorderAudio = (props) => {
       audioBitsPerSecond : 44100,
       bitsPerSecond: 8,
     };
-    mediaRecorder = new MediaRecorder(stream, options);
+    mediaRecorder = new window.MediaRecorder(stream, options);
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
