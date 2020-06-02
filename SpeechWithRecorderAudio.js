@@ -84,7 +84,7 @@ const SpeechWithRecorderAudio = (props) => {
     mediaRecorder.start();
     setTimeout(() => {
       recognize();    
-    }, 5000);    
+    }, 2000);    
   };
 
   useEffect(()=>{
@@ -93,11 +93,9 @@ const SpeechWithRecorderAudio = (props) => {
     .catch((err)=> {
       console.log('ERRO', err);
     }); 
-    console.log('mount');
   },[]);
 
   useEffect(()=>{
-    console.log('eff', mediaRecorder);
     if(mediaRecorder && mediaRecorder.state != 'recording'){
       //mediaRecorder.start(5000);
       //console.log(mediaRecorder.state);
@@ -110,21 +108,15 @@ const SpeechWithRecorderAudio = (props) => {
     }      
   },[mediaRecorder]);
 
-  // useEffect(()=>{
-  //   console.log('recordedChunks', recordedChunks);
-  // },[recordedChunks]);
-
   const recognize = () => {
-    console.log('recognize', mediaRecorder.state);
     mediaRecorder.stop();
     const dados = recordedChunks;
-    console.log('dados', dados);
     playAudio(dados);
     recordedChunks = [];
 
     setTimeout(() => {
       recognize();    
-    }, 5000); 
+    }, 2000); 
   }
 
   return (<div>Recorder Audio</div>);
