@@ -42,9 +42,8 @@ const SpeechWithRecorderAudio = (props) => {
       }
       if (mediaRecorder.state == 'inactive') {
 	          // convert stream data chunks to a 'webm' audio format as a blob
-	          const blob = new Blob(recordedChunks, { type: `audio/${extension}`, bitsPerSecond:128000});//
-	          console.log('blob', blob);
-            const dados = recordedChunks;
+            
+	          const blob = new Blob(recordedChunks, { type: `audio/${extension}`, bitsPerSecond:8000});//128000
             playAudio(blob);
             recordedChunks = [];
             mediaRecorder.start(1000);
