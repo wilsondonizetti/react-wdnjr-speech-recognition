@@ -5,15 +5,14 @@ const SpeechWithRecorderAudio = (props) => {
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
+  let extension = 'webm';
 
-  const playAudio = (dados) =>{
-    const blob = new Blob(dados, { type: 'audio/webm;codecs=opus' });
+  const playAudio = (blob) =>{    
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
       const base64data = reader.result;
       console.log('base64data', base64data);
-      console.log('recordedChunks', dados);
         const audio = new Audio(URL.createObjectURL(blob));
         audio.autoplay = false;
         audio.oncanplay = (ev) => {
@@ -24,10 +23,16 @@ const SpeechWithRecorderAudio = (props) => {
     };    
   };
 
- const handleSuccess = (stream) => {          
+ const handleSuccess = (stream) => {
+    
+    if (!MediaRecorder.isTypeSupported('audio/webm;codecs=opus')){
+      extension="ogg";
+    }
+
     const options = { 
-      mimeType: 'audio/webm;codecs=opus',
-      audioBitsPerSecond : 8000 //44100
+      mimeType: `audio/${extension};codecs=opus`,
+      audioBitsPerSecond : 8000, //44100,256000
+      bitsPerSecond: 8000 //2628000
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
 
@@ -35,12 +40,21 @@ const SpeechWithRecorderAudio = (props) => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);     
       }
+      if (mediaRecorder.state == 'inactive') {
+	          // convert stream data chunks to a 'webm' audio format as a blob
+	          const blob = new Blob(recordedChunks, { type: `audio/${extension}`, bitsPerSecond:128000});//
+	          console.log('blob', blob);
+            const dados = recordedChunks;
+            playAudio(blob);
+            recordedChunks = [];
+            mediaRecorder.start(1000);
+	    }
     };
 
     mediaRecorder.onstop = (e) => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      mediaRecorder.start();
+      //mediaRecorder.start();
       console.log('stop', e);      
     };
 
@@ -61,7 +75,7 @@ const SpeechWithRecorderAudio = (props) => {
     };
 
     setMediaRecorder(mediaRecorder);
-    mediaRecorder.start();
+    mediaRecorder.start(1000);
     setTimeout(() => {
       recognize();    
     }, 2000);    
@@ -77,9 +91,9 @@ const SpeechWithRecorderAudio = (props) => {
 
   const recognize = () => {
     mediaRecorder.stop();
-    const dados = recordedChunks;
-    playAudio(dados);
-    recordedChunks = [];
+    // const dados = recordedChunks;
+    // playAudio(dados);
+    // recordedChunks = [];
 
     setTimeout(() => {
       recognize();    
