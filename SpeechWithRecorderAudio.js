@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import AudioRecorder from 'audio-recorder-polyfill';
 AudioContext = (window.AudioContext || window.webkitAudioContext);
 const SpeechWithRecorderAudio = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
@@ -35,9 +36,8 @@ const SpeechWithRecorderAudio = (props) => {
       audioBitsPerSecond : 8000, //44100,256000
       bitsPerSecond: 8000 //2628000
     };
-    mediaRecorder = new window.MediaRecorder(stream, options);
-
-    mediaRecorder.ondataavailable = (e) => {
+    mediaRecorder = new AudioRecorder(stream, options);
+    mediaRecorder.addEventListener('dataavailable', e => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);     
       }
@@ -45,50 +45,35 @@ const SpeechWithRecorderAudio = (props) => {
 	          // convert stream data chunks to a 'webm' audio format as a blob
             
 	          const blob = new Blob(recordedChunks, { type: `audio/wav`, bitsPerSecond:8000});
-            // const bufferA = audioContext.createBuffer(1, 22050, 22050);
-            // console.log('bufferA', bufferA);
-            // //128000
-            // audioContext.decodeAudioData(bufferA).then((buffer) => {
-            //   console.log('decode')
-            //   const wav = bufferToWav(buffer);
-            //   const blobWav = new window.Blob([ new DataView(wav) ], {
-            //     type: 'audio/wav'
-            //   });
-
-            //   playAudio(blob);
-            // }).catch((error)=> {
-            //   console.log(error);              
-            // });
-
 
             playAudio(blob);
             recordedChunks = [];
             mediaRecorder.start(1000);
 	    }
-    };
+    });
 
-    mediaRecorder.onstop = (e) => {
-      // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
-      // downloadLink.download = 'acetest.wav';
-      //mediaRecorder.start();
-      console.log('stop', e);      
-    };
+    // mediaRecorder.onstop = (e) => {
+    //   // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
+    //   // downloadLink.download = 'acetest.wav';
+    //   //mediaRecorder.start();
+    //   console.log('stop', e);      
+    // };
 
-    mediaRecorder.onresume = (e) => {
-      console.log('onresume', e);
-    };
+    // mediaRecorder.onresume = (e) => {
+    //   console.log('onresume', e);
+    // };
 
-    mediaRecorder.onstart = (e) => {
-      console.log('onstart', e);
-    };
+    // mediaRecorder.onstart = (e) => {
+    //   console.log('onstart', e);
+    // };
 
-    mediaRecorder.onpause = (e) => {
-      console.log('onpause', e);
-    };
+    // mediaRecorder.onpause = (e) => {
+    //   console.log('onpause', e);
+    // };
 
-    mediaRecorder.onerror = (e) => {
-      console.log('onerror', e);
-    };
+    // mediaRecorder.onerror = (e) => {
+    //   console.log('onerror', e);
+    // };
 
     setMediaRecorder(mediaRecorder);
     mediaRecorder.start(1000);
