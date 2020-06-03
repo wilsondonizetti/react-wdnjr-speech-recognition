@@ -27,7 +27,7 @@ const SpeechWithRecorderAudio = (props) => {
  const handleSuccess = (stream) => {          
     const options = { 
       mimeType: 'audio/webm;codecs=opus',
-      audioBitsPerSecond : 44100 //44100
+      audioBitsPerSecond : 8000 //44100
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
 
