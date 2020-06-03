@@ -1,13 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import AudioRecorder from 'audio-recorder-polyfill';
-AudioContext = (window.AudioContext || window.webkitAudioContext);
+
 const SpeechWithRecorderAudio = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
-  let extension = 'webm';
-  const audioContext = new AudioContext();
+  let extension = 'audio/wav';
 
   const playAudio = (blob) =>{    
     const reader = new FileReader();
@@ -27,16 +26,14 @@ const SpeechWithRecorderAudio = (props) => {
 
  const handleSuccess = (stream) => {
     
-    if (!MediaRecorder.isTypeSupported('audio/webm;codecs=opus')){
-      extension="ogg";
-    }
+    //extension = ['audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
 
     const options = { 
-      mimeType: `audio/${extension};codecs=opus`,
+      mimeType: extension,
       audioBitsPerSecond : 8000, //44100,256000
       bitsPerSecond: 8000 //2628000
     };
-    mediaRecorder = new AudioRecorder(stream);
+    mediaRecorder = new AudioRecorder(stream, options);
     mediaRecorder.addEventListener('dataavailable', e => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);     
@@ -44,7 +41,7 @@ const SpeechWithRecorderAudio = (props) => {
       if (mediaRecorder.state == 'inactive') {
 	          // convert stream data chunks to a 'webm' audio format as a blob
             
-	          const blob = new Blob(recordedChunks, { type: `audio/wav`, bitsPerSecond:8000});
+	          const blob = new Blob(recordedChunks, { type: extension, bitsPerSecond:8000});
 
             playAudio(blob);
             recordedChunks = [];
@@ -95,10 +92,6 @@ const SpeechWithRecorderAudio = (props) => {
 
   const recognize = () => {
     mediaRecorder.stop();
-    // const dados = recordedChunks;
-    // playAudio(dados);
-    // recordedChunks = [];
-
     setTimeout(() => {
       recognize();    
     }, 2000); 
