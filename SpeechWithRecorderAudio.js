@@ -7,7 +7,7 @@ const SpeechWithRecorderAudio = (props) => {
   const [recordedChunks, setRecordedChunks] = useState([]);
 
   const playAudio = (dados) =>{
-    const blob = new Blob(dados, {type: 'audio/mpeg-3'});
+    const blob = new Blob(dados, { type: 'audio/webm' });
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
@@ -33,19 +33,13 @@ const SpeechWithRecorderAudio = (props) => {
  const handleSuccess = (stream) => {          
     const options = { 
       mimeType: 'audio/webm',
-      audioBitsPerSecond : 44100,
-      bitsPerSecond: 8,
+      audioBitsPerSecond : 128000 //44100
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
 
     mediaRecorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);     
-      }
-
-      if(shouldStop === true && stopped === false) {
-        mediaRecorder.stop();
-        stopped = true;
       }
     };
 
@@ -86,11 +80,6 @@ const SpeechWithRecorderAudio = (props) => {
       console.log('ERRO', err);
     }); 
   },[]);
-
-  useEffect(()=>{
-    if(mediaRecorder && mediaRecorder.state != 'recording'){
-    }      
-  },[mediaRecorder]);
 
   const recognize = () => {
     mediaRecorder.stop();
