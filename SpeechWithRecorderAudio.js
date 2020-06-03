@@ -7,7 +7,7 @@ const SpeechWithRecorderAudio = (props) => {
   const [recordedChunks, setRecordedChunks] = useState([]);
 
   const playAudio = (dados) =>{
-    const blob = new Blob(dados, {type: 'audio/mp3'});
+    const blob = new Blob(dados, {type: 'audio/mpeg-3'});
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
@@ -34,7 +34,7 @@ const SpeechWithRecorderAudio = (props) => {
     const options = { 
       mimeType: 'audio/webm',
       audioBitsPerSecond : 44100,
-      bitsPerSecond: 1,
+      bitsPerSecond: 8,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
 
