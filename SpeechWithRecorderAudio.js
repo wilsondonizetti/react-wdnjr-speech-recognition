@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import AudioRecorder from 'audio-recorder-polyfill';
-
+window.MediaRecorder = AudioRecorder;
 const SpeechWithRecorderAudio = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
@@ -26,14 +26,19 @@ const SpeechWithRecorderAudio = (props) => {
 
  const handleSuccess = (stream) => {
     
-    //extension = ['audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
+    const ext = ['audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
+    console.log('ext', ext);
 
     const options = { 
       mimeType: extension,
       audioBitsPerSecond : 8000, //44100,256000
       bitsPerSecond: 8000 //2628000
     };
-    mediaRecorder = new AudioRecorder(stream, options);
+    mediaRecorder = new window.MediaRecorder(stream, options);
+        
+    //.log('sampleRate', mediaRecorder.em);
+    //console.log('audioBitsPerSecond', mediaRecorder.prototype.audioBitsPerSecond);
+    //mediaRecorder.prototype.options.audioBitsPerSecond = 8000
     mediaRecorder.addEventListener('dataavailable', e => {
       if (e.data.size > 0) {
         recordedChunks.push(e.data);     
