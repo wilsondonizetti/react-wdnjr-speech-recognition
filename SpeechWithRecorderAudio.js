@@ -7,18 +7,13 @@ const SpeechWithRecorderAudio = (props) => {
   const [recordedChunks, setRecordedChunks] = useState([]);
 
   const playAudio = (dados) =>{
-    const blob = new Blob(dados, { type: 'audio/webm' });
+    const blob = new Blob(dados, { type: 'audio/webm;codecs=opus' });
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
       const base64data = reader.result;
       console.log('base64data', base64data);
       console.log('recordedChunks', dados);
-
-      if (navigator.userAgent === 'logisticspwa') {
-        const msg = { messageType: 'playsound', value: base64data };
-        window.ReactNativeWebView.postMessage(JSON.stringify(msg));
-      } else {
         const audio = new Audio(URL.createObjectURL(blob));
         audio.autoplay = false;
         audio.oncanplay = (ev) => {
@@ -26,14 +21,13 @@ const SpeechWithRecorderAudio = (props) => {
                 console.log('play');
             });
         };
-      }
     };    
   };
 
  const handleSuccess = (stream) => {          
     const options = { 
-      mimeType: 'audio/webm',
-      audioBitsPerSecond : 128000 //44100
+      mimeType: 'audio/webm;codecs=opus',
+      audioBitsPerSecond : 44100 //44100
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
 

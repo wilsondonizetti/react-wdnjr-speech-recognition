@@ -4,6 +4,7 @@ import Hello from './Hello';
 import Speech from './Speech';
 import SpeechArtyom from './SpeechArtyom';
 import SpeechWithRecorderAudio from './SpeechWithRecorderAudio';
+import SpeechWithRecorderAudioContext from './SpeechWithRecorderAudioContext';
 import './style.css';
 
 class App extends Component {
