@@ -1,12 +1,15 @@
 import React, {useEffect, useState} from 'react';
 import AudioRecorder from 'audio-recorder-polyfill';
+import mpegEncoder from 'audio-recorder-polyfill/mpeg-encoder';
+AudioRecorder.encoder = mpegEncoder;
+AudioRecorder.prototype.mimeType = 'audio/mpeg';
 window.MediaRecorder = AudioRecorder;
 const SpeechWithRecorderAudio = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
-  let extension = 'audio/wav';
+  let extension = 'audio/mpeg';
 
   const playAudio = (blob) =>{    
     const reader = new FileReader();
@@ -26,7 +29,7 @@ const SpeechWithRecorderAudio = (props) => {
 
  const handleSuccess = (stream) => {
     
-    const ext = ['audio/wav', 'audio/mp3', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
+    const ext = ['audio/wav', 'audio/mpeg', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
     console.log('ext', ext);
 
     const options = { 
