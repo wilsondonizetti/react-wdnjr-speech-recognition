@@ -35,7 +35,7 @@ const SpeechWithRecorderAudio = (props) => {
     const options = { 
       mimeType: extension,
       audioBitsPerSecond : 8000, //44100,256000
-      bitsPerSecond: 8000 //2628000
+      bitsPerSecond: 8000 //2628000,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
         
