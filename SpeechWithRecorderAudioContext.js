@@ -1,26 +1,27 @@
 import React, {useEffect, useState} from 'react';
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-
+//import AudioRecorder from 'audio-recorder-polyfill';
+//import mpegEncoder from 'audio-recorder-polyfill/mpeg-encoder';
+//AudioRecorder.encoder = mpegEncoder;
+//AudioRecorder.prototype.mimeType = 'audio/mpeg';
+//window.MediaRecorder = AudioRecorder;
 const SpeechWithRecorderAudioContext = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
-  const [rec, setRec] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
+  const [audioContext, setAudioContext] = useState(new AudioContext());
+  const [analyser, setAnalyser] = useState(null); 
+  const [stream, setStream] = useState(null); 
+  const [min_decibels] = useState(-80); 
+  const [silence_delay ] = useState(500); 
+  const [extension, setExtension] = useState('audio/mpeg');   
 
-  const playAudio = (dados) =>{
-    const blob = new Blob(dados, { type: 'audio/webm' });
+  const playAudio = (blob) =>{    
     const reader = new FileReader();
     reader.readAsDataURL(blob); 
     reader.onloadend = () => {
       const base64data = reader.result;
       console.log('base64data', base64data);
-      console.log('recordedChunks', dados);
-
-      if (navigator.userAgent === 'logisticspwa') {
-        const msg = { messageType: 'playsound', value: base64data };
-        window.ReactNativeWebView.postMessage(JSON.stringify(msg));
-      } else {
         const audio = new Audio(URL.createObjectURL(blob));
         audio.autoplay = false;
         audio.oncanplay = (ev) => {
@@ -28,39 +29,90 @@ const SpeechWithRecorderAudioContext = (props) => {
                 console.log('play');
             });
         };
-      }
     };    
   };
 
+  const detectSilence = (
+  stream,
+  onSoundEnd = _=>{},
+  onSoundStart = _=>{},
+  silence_delay = 500,
+  min_decibels = -80
+  ) => {
+  const ctx = new AudioContext();
+  const analyser = ctx.createAnalyser();
+  const streamNode = ctx.createMediaStreamSource(stream);
+  streamNode.connect(analyser);
+  analyser.minDecibels = min_decibels;
+
+  const data = new Uint8Array(analyser.frequencyBinCount); // will hold our data
+  let silence_start = performance.now();
+  let triggered = false; // trigger only once per silence event
+
+  const loop = (time) => {
+    requestAnimationFrame(loop); // we'll loop every 60th of a second to check
+    analyser.getByteFrequencyData(data); // get current data
+    if (data.some(v => v)) { // if there is data above the given db limit
+      if(triggered){
+        triggered = false;
+        onSoundStart();
+        }
+      silence_start = time; // set it to now
+    }
+    if (!triggered && time - silence_start > silence_delay) {
+      onSoundEnd();
+      triggered = true;
+    }
+  }
+  loop();
+}
+
+const onSilence = ()=> {
+  console.log('silence');
+}
+const onSpeak = (data) => {
+  console.log('speaking', data);
+}
+
  const handleSuccess = (stream) => {
-
     
-    var audioContext = new AudioContext;   
-    const input = audioContext.createMediaStreamSource(stream);       
-
-    rec = new Recorder(input, {
-        numChannels: 1
-    });
-    setRec(rec);
-    //start the recording process 
-    rec.record();
-
+    // const ext = ['audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
+    // console.log('ext', ext);
+    detectSilence(stream, onSilence, onSpeak);
     // const options = { 
-    //   mimeType: 'audio/webm',
-    //   audioBitsPerSecond : 44100 //44100
+    //   mimeType: extension,
+    //   audioBitsPerSecond : 16000, //44100,256000
+    //   bitsPerSecond: 16000 //2628000,
     // };
-    // mediaRecorder = new window.MediaRecorder(stream, options);
+    //mediaRecorder = new window.MediaRecorder(stream, options);
 
-    // mediaRecorder.ondataavailable = (e) => {
+    //setAnalyser(audioContext.createAnalyser());
+    //setStream(audioContext.createMediaStreamSource(stream));
+    //stream.connect(analyser);
+    //analyser.minDecibels = min_decibels;
+        
+    //.log('sampleRate', mediaRecorder.em);
+    //console.log('audioBitsPerSecond', mediaRecorder.prototype.audioBitsPerSecond);
+    //mediaRecorder.prototype.options.audioBitsPerSecond = 8000
+    // mediaRecorder.addEventListener('dataavailable', e => {
     //   if (e.data.size > 0) {
     //     recordedChunks.push(e.data);     
     //   }
-    // };
+    //   if (mediaRecorder.state == 'inactive') {
+	  //         // convert stream data chunks to a 'webm' audio format as a blob
+            
+	  //         const blob = new Blob(recordedChunks, { bitsPerSecond:16000});
+
+    //         playAudio(blob);
+    //         recordedChunks = [];
+    //         mediaRecorder.start();
+	  //   }
+    // });
 
     // mediaRecorder.onstop = (e) => {
     //   // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
     //   // downloadLink.download = 'acetest.wav';
-    //   mediaRecorder.start();
+    //   //mediaRecorder.start();
     //   console.log('stop', e);      
     // };
 
@@ -88,7 +140,10 @@ const SpeechWithRecorderAudioContext = (props) => {
   };
 
   useEffect(()=>{
-    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+    navigator.mediaDevices.getUserMedia({audio: {
+      sampleRate: 16000,
+      channelCount: 1
+    }, video: false})
     .then(handleSuccess)
     .catch((err)=> {
       console.log('ERRO', err);
@@ -97,16 +152,13 @@ const SpeechWithRecorderAudioContext = (props) => {
 
   const recognize = () => {
     mediaRecorder.stop();
-    const dados = recordedChunks;
-    playAudio(dados);
-    recordedChunks = [];
-
     setTimeout(() => {
       recognize();    
     }, 2000); 
   }
 
-  return (<div>Recorder Audio</div>);
+  
+  return (<div>Recorder Audio: SpeechWithRecorderAudioContext</div>);
 }
 
 export default SpeechWithRecorderAudioContext;
