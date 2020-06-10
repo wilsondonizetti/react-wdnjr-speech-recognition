@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import AudioRecorder from 'audio-recorder-polyfill';
 import mpegEncoder from 'audio-recorder-polyfill/mpeg-encoder';
-AudioRecorder.encoder = mpegEncoder;
-AudioRecorder.prototype.mimeType = 'audio/mpeg';
-window.MediaRecorder = AudioRecorder;
+//AudioRecorder.encoder = mpegEncoder;
+//AudioRecorder.prototype.mimeType = 'audio/mpeg';
+//window.MediaRecorder = AudioRecorder;
 const SpeechWithRecorderAudio = (props) => {
   const [shouldStop, setShouldStop] = useState(false);
   const [stopped, setStopped] = useState(false);  
@@ -34,8 +34,8 @@ const SpeechWithRecorderAudio = (props) => {
 
     const options = { 
       mimeType: extension,
-      audioBitsPerSecond : 48000, //44100,256000
-      bitsPerSecond: 48000 //2628000,
+      audioBitsPerSecond : 16000, //44100,256000
+      bitsPerSecond: 16000 //2628000,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
         
@@ -90,11 +90,11 @@ const SpeechWithRecorderAudio = (props) => {
   useEffect(()=>{
     const audioConstraints = {
             noiseSuppression: true,
-            sampleRate: 48000,
-            echoCancellation: false,
+            sampleRate: 16000,
+            echoCancellation: true,
             channelCount: 1,
-            autoGainControl: false,
-            volume: 0.1
+            autoGainControl: true,
+            volume: 1.0
         };
 
     navigator.mediaDevices.getUserMedia({audio: audioConstraints, video: false})
@@ -110,6 +110,43 @@ const SpeechWithRecorderAudio = (props) => {
       recognize();    
     }, 2000); 
   }
+
+  const exportWAV = (type, desiredSamplingRate, numChannels) =>{
+    var buffers = [];
+    for (var channel = 0; channel < numChannels; channel++){
+        var buffer = mergeBuffers(recBuffers[channel], recLength);
+        buffer = interpolateArray(buffer, desiredSamplingRate, sampleRate);
+        buffers.push(buffer);
+    }
+    sampleRate = desiredSamplingRate;
+    if (numChannels === 2){
+        var interleaved = interleave(buffers[0], buffers[1]);
+    } else {
+        var interleaved = buffers[0];
+    }
+    var dataview = encodeWAV(interleaved);
+    var audioBlob = new Blob([dataview], { type: type });
+    return audioBlob;
+}
+
+  const interpolateArray = (data, newSampleRate, oldSampleRate) => {
+    var fitCount = Math.round(data.length*(newSampleRate/oldSampleRate));
+    var newData = new Array();
+    var springFactor = new Number((data.length - 1) / (fitCount - 1));
+    newData[0] = data[0]; // for new allocation
+    for ( var i = 1; i < fitCount - 1; i++) {
+    var tmp = i * springFactor;
+    var before = new Number(Math.floor(tmp)).toFixed();
+    var after = new Number(Math.ceil(tmp)).toFixed();
+    var atPoint = tmp - before;
+    newData[i] = linearInterpolate(data[before], data[after], atPoint);
+    }
+    newData[fitCount - 1] = data[data.length - 1]; // for new allocation
+    return newData;
+};
+const linearInterpolate = (before, after, atPoint) => {
+    return before + (after - before) * atPoint;
+};
 
   
   return (<div>Recorder Audio</div>);
