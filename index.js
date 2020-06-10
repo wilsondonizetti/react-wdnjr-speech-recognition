@@ -22,8 +22,8 @@ class App extends Component {
         <p>
           Start editing to see some magic happen :)
         </p>
-        {/*<SpeechWithRecorderAudio />*/}
-        <SpeechWithRecorderAudioContext />
+        <SpeechWithRecorderAudio />
+        {/*<SpeechWithRecorderAudioContext />*/}
       </div>
     );
   }

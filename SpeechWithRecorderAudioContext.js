@@ -118,10 +118,11 @@ const SpeechWithRecorderAudioContext = (props) => {
   useEffect(()=>{
     const audioConstraints = {
             noiseSuppression: true,
-            sampleRate: 44100,
+            sampleRate: 48000,
             echoCancellation: true,
             channelCount: 1,
-            autoGainControl: true
+            autoGainControl: true,
+            volume: 0
         };
 
     navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false })

@@ -9,7 +9,7 @@ const SpeechWithRecorderAudio = (props) => {
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
-  let extension = 'audio/mpeg';
+  let extension = 'audio/webm';
 
   const playAudio = (blob) =>{    
     const reader = new FileReader();
@@ -34,8 +34,8 @@ const SpeechWithRecorderAudio = (props) => {
 
     const options = { 
       mimeType: extension,
-      audioBitsPerSecond : 8000, //44100,256000
-      bitsPerSecond: 8000 //2628000,
+      audioBitsPerSecond : 48000, //44100,256000
+      bitsPerSecond: 48000 //2628000,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
         
@@ -49,7 +49,7 @@ const SpeechWithRecorderAudio = (props) => {
       if (mediaRecorder.state == 'inactive') {
 	          // convert stream data chunks to a 'webm' audio format as a blob
             
-	          const blob = new Blob(recordedChunks, { type: extension, bitsPerSecond:8000});
+	          const blob = new Blob(recordedChunks);
 
             playAudio(blob);
             recordedChunks = [];
@@ -57,12 +57,12 @@ const SpeechWithRecorderAudio = (props) => {
 	    }
     });
 
-    // mediaRecorder.onstop = (e) => {
-    //   // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
-    //   // downloadLink.download = 'acetest.wav';
-    //   //mediaRecorder.start();
-    //   console.log('stop', e);      
-    // };
+     mediaRecorder.addEventListener('stop', e => {
+      // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
+      // downloadLink.download = 'acetest.wav';
+      //mediaRecorder.start();
+      console.log('stop', e);      
+    });
 
     // mediaRecorder.onresume = (e) => {
     //   console.log('onresume', e);
@@ -88,10 +88,16 @@ const SpeechWithRecorderAudio = (props) => {
   };
 
   useEffect(()=>{
-    navigator.mediaDevices.getUserMedia({audio: {
-      sampleRate: 8000,
-      channelCount: 1
-    }, video: false})
+    const audioConstraints = {
+            noiseSuppression: true,
+            sampleRate: 48000,
+            echoCancellation: false,
+            channelCount: 1,
+            autoGainControl: false,
+            volume: 0.1
+        };
+
+    navigator.mediaDevices.getUserMedia({audio: audioConstraints, video: false})
     .then(handleSuccess)
     .catch((err)=> {
       console.log('ERRO', err);
