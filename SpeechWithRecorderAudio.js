@@ -66,8 +66,16 @@ const SpeechWithRecorderAudio = (props) => {
       }
 
       const average = values / length;
-      if(average > 20){
-            console.log(Math.round(average));
+      if(average > 15){
+        if (mediaRecorder && mediaRecorder.state === 'inactive') {
+             mediaRecorder.start();
+        }
+           
+        console.log(Math.round(average));
+      } else {
+        if (mediaRecorder && mediaRecorder.state == 'recording') {
+             mediaRecorder.stop();
+        }
       }
     };
 
@@ -133,7 +141,7 @@ const SpeechWithRecorderAudio = (props) => {
       // }).catch(err=> console.log('err', err.message)); 
       playAudio(blob);
       recordedChunks = [];
-      mediaRecorder.start(); 
+      //mediaRecorder.start(); 
       // const blob = new Blob(recordedChunks, {type: 'audio/wav', bitsPerSecond: 16000});
       
       console.log('stop', e);      
@@ -156,10 +164,10 @@ const SpeechWithRecorderAudio = (props) => {
     // };
 
     setMediaRecorder(mediaRecorder);
-    mediaRecorder.start();
-    setTimeout(() => {
-      recognize();    
-    }, 2000);    
+    //mediaRecorder.start();
+    // setTimeout(() => {
+    //   recognize();    
+    // }, 2000);    
   };
 
   const colorPids = (vol) => {
@@ -194,12 +202,12 @@ const SpeechWithRecorderAudio = (props) => {
   },[]);
 
   const recognize = () => {
-    if (mediaRecorder && mediaRecorder.state !== 'paused') {
-            mediaRecorder.stop();
-            setTimeout(() => {
-                recognize();
-            }, 3000);
-        }
+    // if (mediaRecorder && mediaRecorder.state !== 'paused') {
+    //         mediaRecorder.stop();
+    //         setTimeout(() => {
+    //             recognize();
+    //         }, 3000);
+    //     }
   }
 
   const exportWAV = (recBuffers, type, desiredSamplingRate,sampleRate, numChannels) =>{
