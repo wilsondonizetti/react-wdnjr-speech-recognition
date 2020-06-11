@@ -38,7 +38,65 @@ const SpeechWithRecorderAudio = (props) => {
       bitsPerSecond: 44100 //2628000,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
-        
+    // const context = new AudioContext();
+    // const source = context.createMediaStreamSource(stream);
+    // const processor = context.createScriptProcessor(1024, 1, 1);
+
+    // source.connect(processor);
+    // processor.connect(context.destination);
+
+    const ctx = new AudioContext();
+    const mic = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    const processor = ctx.createScriptProcessor(1024, 1, 1);
+    const osc = ctx.createOscillator();
+    analyser.smoothingTimeConstant = 0.8;
+    analyser.fftSize = 1024;
+
+    processor.onaudioprocess = (e) => {
+      // Do something with the data, e.g. convert it to WAV
+      //console.log(e.inputBuffer);
+      var array = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(array);
+      const values = 0;
+
+      const length = array.length;
+      for (let i = 0; i < length; i++) {
+        values += (array[i]);
+      }
+
+      const average = values / length;
+      if(average > 20){
+            console.log(Math.round(average));
+      }
+    };
+
+    mic.connect(analyser); 
+    processor.connect(ctx.destination);
+    //osc.connect(ctx.destination);
+    //osc.start(0);
+    // var data = new Uint8Array(analyser.frequencyBinCount);
+
+    // const play = () => {
+    //     analyser.getByteFrequencyData(data);
+
+    //     // get fullest bin
+    //     var idx = 0;
+    //     for (var j=0; j < analyser.frequencyBinCount; j++) {
+    //         if (data[j] > data[idx]) {
+    //             idx = j;
+    //         }
+    //     }
+
+    //     var frequency = idx * ctx.sampleRate / analyser.fftSize;
+    //     console.log(frequency);
+    //     osc.frequency.value = frequency;
+
+    //     requestAnimationFrame(play);
+    // }
+
+    // play();
+
     //.log('sampleRate', mediaRecorder.em);
     //console.log('audioBitsPerSecond', mediaRecorder.prototype.audioBitsPerSecond);
     //mediaRecorder.prototype.options.audioBitsPerSecond = 8000
@@ -63,16 +121,17 @@ const SpeechWithRecorderAudio = (props) => {
 
       const blob = new Blob(recordedChunks, {bitsPerSecond: 44100});
       
-      blob.arrayBuffer().then(buffer => {
-        const uint8View = new Uint8Array(buffer);
+      // blob.arrayBuffer().then(buffer => {
+      //   const uint8View = new Uint8Array(buffer);
 
-        const audioBlob = exportWAV(uint8View, 'audio/wav', 44100,44100, 1);
-        //const dataview = encodeWAV(uint8View,1,44100);
-        //const audioBlob = new Blob([dataview], { type: 'audio/wav' });       
-        //playAudio(blob);
-        playAudio(audioBlob);
+      //   const audioBlob = exportWAV(uint8View, 'audio/wav', 44100,44100, 1);
+      //   //const dataview = encodeWAV(uint8View,1,44100);
+      //   //const audioBlob = new Blob([dataview], { type: 'audio/wav' });       
+      //   //playAudio(blob);
+      //   playAudio(audioBlob);
           
-      }).catch(err=> console.log('err', err.message)); 
+      // }).catch(err=> console.log('err', err.message)); 
+      playAudio(blob);
       recordedChunks = [];
       mediaRecorder.start(); 
       // const blob = new Blob(recordedChunks, {type: 'audio/wav', bitsPerSecond: 16000});
@@ -102,6 +161,20 @@ const SpeechWithRecorderAudio = (props) => {
       recognize();    
     }, 2000);    
   };
+
+  const colorPids = (vol) => {
+  let all_pids = $('.pid');
+  let amout_of_pids = Math.round(vol/10);
+  let elem_range = all_pids.slice(0, amout_of_pids)
+  for (var i = 0; i < all_pids.length; i++) {
+    all_pids[i].style.backgroundColor="#e6e7e8";
+  }
+  for (var i = 0; i < elem_range.length; i++) {
+
+    // console.log(elem_range[i]);
+    elem_range[i].style.backgroundColor="#69ce2b";
+  }
+}
 
   useEffect(()=>{
     const audioConstraints = {

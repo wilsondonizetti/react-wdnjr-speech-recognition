@@ -45,14 +45,14 @@ const SpeechWithRecorderAudioContext = (props) => {
     source.connect(processor);
     processor.connect(context.destination);
 
-    processor.onaudioprocess = function(e) {
-      // Do something with the data, e.g. convert it to WAV
-      console.log(e.inputBuffer);
-      var buffer = [];
-      for (var channel = 0; channel < this.config.numChannels; channel++) {
-          buffer.push(e.inputBuffer.getChannelData(channel));
-      }
-    };
+    // processor.onaudioprocess = function(e) {
+    //   // Do something with the data, e.g. convert it to WAV
+    //   console.log(e.inputBuffer);
+    //   var buffer = [];
+    //   for (var channel = 0; channel < this.config.numChannels; channel++) {
+    //       buffer.push(e.inputBuffer.getChannelData(channel));
+    //   }
+    // };
 
     //mediaRecorder = new window.MediaRecorder(stream, options);
         
