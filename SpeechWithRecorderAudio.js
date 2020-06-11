@@ -34,8 +34,8 @@ const SpeechWithRecorderAudio = (props) => {
 
     const options = { 
       mimeType: extension,
-      audioBitsPerSecond : 16000, //44100,256000
-      bitsPerSecond: 16000 //2628000,
+      audioBitsPerSecond : 44100, //44100,256000
+      bitsPerSecond: 44100 //2628000,
     };
     mediaRecorder = new window.MediaRecorder(stream, options);
         
@@ -44,23 +44,39 @@ const SpeechWithRecorderAudio = (props) => {
     //mediaRecorder.prototype.options.audioBitsPerSecond = 8000
     mediaRecorder.addEventListener('dataavailable', e => {
       if (e.data.size > 0) {
-        recordedChunks.push(e.data);     
+          recordedChunks.push(e.data);           
       }
       if (mediaRecorder.state == 'inactive') {
 	          // convert stream data chunks to a 'webm' audio format as a blob
             
-	          const blob = new Blob(recordedChunks);
+	          // const blob = new Blob(recordedChunks);
 
-            playAudio(blob);
-            recordedChunks = [];
-            mediaRecorder.start();
+            // playAudio(blob);
+            // recordedChunks = [];
+            //mediaRecorder.start();
 	    }
     });
 
      mediaRecorder.addEventListener('stop', e => {
       // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
       // downloadLink.download = 'acetest.wav';
-      //mediaRecorder.start();
+
+      const blob = new Blob(recordedChunks, {bitsPerSecond: 44100});
+      
+      blob.arrayBuffer().then(buffer => {
+        const uint8View = new Uint8Array(buffer);
+
+        const audioBlob = exportWAV(uint8View, 'audio/wav', 44100,44100, 1);
+        //const dataview = encodeWAV(uint8View,1,44100);
+        //const audioBlob = new Blob([dataview], { type: 'audio/wav' });       
+        //playAudio(blob);
+        playAudio(audioBlob);
+          
+      }).catch(err=> console.log('err', err.message)); 
+      recordedChunks = [];
+      mediaRecorder.start(); 
+      // const blob = new Blob(recordedChunks, {type: 'audio/wav', bitsPerSecond: 16000});
+      
       console.log('stop', e);      
     });
 
@@ -94,7 +110,7 @@ const SpeechWithRecorderAudio = (props) => {
             echoCancellation: true,
             channelCount: 1,
             autoGainControl: true,
-            volume: 1.0
+            volume: 0.5
         };
 
     navigator.mediaDevices.getUserMedia({audio: audioConstraints, video: false})
@@ -105,48 +121,89 @@ const SpeechWithRecorderAudio = (props) => {
   },[]);
 
   const recognize = () => {
-    mediaRecorder.stop();
-    setTimeout(() => {
-      recognize();    
-    }, 2000); 
+    if (mediaRecorder && mediaRecorder.state !== 'paused') {
+            mediaRecorder.stop();
+            setTimeout(() => {
+                recognize();
+            }, 3000);
+        }
   }
 
-  const exportWAV = (type, desiredSamplingRate, numChannels) =>{
-    var buffers = [];
-    for (var channel = 0; channel < numChannels; channel++){
-        var buffer = mergeBuffers(recBuffers[channel], recLength);
-        buffer = interpolateArray(buffer, desiredSamplingRate, sampleRate);
-        buffers.push(buffer);
+  const exportWAV = (recBuffers, type, desiredSamplingRate,sampleRate, numChannels) =>{
+    //debugger;
+    //console.log('bf',recBuffers, recBuffers.byteLength)
+    let buffers = [];
+    for (let channel = 0; channel < numChannels; channel++) {
+        buffers.push(mergeBuffers(recBuffers[channel], recBuffers[channel].length));
     }
-    sampleRate = desiredSamplingRate;
-    if (numChannels === 2){
-        var interleaved = interleave(buffers[0], buffers[1]);
+    let interleaved;
+    if (numChannels === 2) {
+        interleaved = interleave(buffers[0], buffers[1]);
     } else {
-        var interleaved = buffers[0];
+        interleaved = buffers[0];
     }
-    var dataview = encodeWAV(interleaved);
-    var audioBlob = new Blob([dataview], { type: type });
-    return audioBlob;
+    let dataview = encodeWAV(interleaved,numChannels, sampleRate);
+    let audioBlob = new Blob([dataview], {type: type});
+    return audioBlob
 }
 
-  const interpolateArray = (data, newSampleRate, oldSampleRate) => {
-    var fitCount = Math.round(data.length*(newSampleRate/oldSampleRate));
-    var newData = new Array();
-    var springFactor = new Number((data.length - 1) / (fitCount - 1));
-    newData[0] = data[0]; // for new allocation
-    for ( var i = 1; i < fitCount - 1; i++) {
-    var tmp = i * springFactor;
-    var before = new Number(Math.floor(tmp)).toFixed();
-    var after = new Number(Math.ceil(tmp)).toFixed();
-    var atPoint = tmp - before;
-    newData[i] = linearInterpolate(data[before], data[after], atPoint);
+const mergeBuffers = (recBuffers, recLength) => {
+    let result = new Float32Array(recLength);
+    let offset = 0;
+    for (let i = 0; i < recBuffers.length; i++) {
+        result.set(recBuffers[i], offset);
+        offset += recBuffers[i].length;
     }
-    newData[fitCount - 1] = data[data.length - 1]; // for new allocation
-    return newData;
+    return result;
 };
-const linearInterpolate = (before, after, atPoint) => {
-    return before + (after - before) * atPoint;
-};
+
+const encodeWAV = (samples, numChannels, sampleRate) => {
+    let buffer = new ArrayBuffer(44 + samples.length * 2);
+    let view = new DataView(buffer);
+
+    /* RIFF identifier */
+    writeString(view, 0, 'RIFF');
+    /* RIFF chunk length */
+    view.setUint32(4, 36 + samples.length * 2, true);
+    /* RIFF type */
+    writeString(view, 8, 'WAVE');
+    /* format chunk identifier */
+    writeString(view, 12, 'fmt ');
+    /* format chunk length */
+    view.setUint32(16, 16, true);
+    /* sample format (raw) */
+    view.setUint16(20, 1, true);
+    /* channel count */
+    view.setUint16(22, numChannels, true);
+    /* sample rate */
+    view.setUint32(24, sampleRate, true);
+    /* byte rate (sample rate * block align) */
+    view.setUint32(28, sampleRate * 4, true);
+    /* block align (channel count * bytes per sample) */
+    view.setUint16(32, numChannels * 2, true);
+    /* bits per sample */
+    view.setUint16(34, 16, true);
+    /* data chunk identifier */
+    writeString(view, 36, 'data');
+    /* data chunk length */
+    view.setUint32(40, samples.length * 2, true);
+
+    floatTo16BitPCM(view, 44, samples);
+
+    return view;
+};    
+
+const floatTo16BitPCM = (output, offset, input) => {
+    for (let i = 0; i < input.length; i++, offset += 2) {
+        let s = Math.max(-1, Math.min(1, input[i]));
+        output.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+}
+const writeString = (view, offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+    }
+}    
 
   
   return (<div>Recorder Audio</div>);

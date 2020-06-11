@@ -9,12 +9,7 @@ const SpeechWithRecorderAudioContext = (props) => {
   const [stopped, setStopped] = useState(false);  
   const [mediaRecorder, setMediaRecorder] = useState(null); 
   const [recordedChunks, setRecordedChunks] = useState([]);
-  // const [audioContext, setAudioContext] = useState(null);
-  // const [analyser, setAnalyser] = useState(null); 
-  // const [audioStream, setAudioStream] = useState(null); 
-  // const [min_decibels] = useState(-80); 
-  // const [silence_delay ] = useState(500); 
-  // const [extension, setExtension] = useState('audio/mpeg');   
+  let extension = 'audio/webm';
 
   const playAudio = (blob) =>{    
     const reader = new FileReader();
@@ -32,100 +27,97 @@ const SpeechWithRecorderAudioContext = (props) => {
     };    
   };
 
-//   const detectSilence = (
-//   stream,
-//   onSoundEnd = _=>{},
-//   onSoundStart = _=>{},
-//   silence_delay = 500,
-//   min_decibels = -80
-//   ) => {
-
-//   const data = new Uint8Array(analyser.frequencyBinCount); // will hold our data
-//   let silence_start = performance.now();
-//   let triggered = false; // trigger only once per silence event
-
-//   const loop = (time) => {
-//     requestAnimationFrame(loop); // we'll loop every 60th of a second to check
-//     analyser.getByteFrequencyData(data); // get current data
-//     if (data.some(v => v)) { // if there is data above the given db limit
-//       if(triggered){
-//         triggered = false;
-//         onSoundStart();
-//         }
-//       silence_start = time; // set it to now
-//     }
-//     if (!triggered && time - silence_start > silence_delay) {
-//       onSoundEnd();
-//       triggered = true;
-//     }
-//   }
-//   loop();
-// }
-
-// const onSilence = ()=> {
-//   console.log('silence');
-// }
-// const onSpeak = (data) => {
-//   console.log('speaking', data);
-// }
-
  const handleSuccess = (stream) => {
+    
     const ext = ['audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
     console.log('ext', ext);
 
-    // const context = new AudioContext();
-    // const source = context.createMediaStreamSource(stream);
-    // const processor = context.createScriptProcessor(1024, 1, 1);
+    const options = { 
+      mimeType: extension,
+      //audioBitsPerSecond : 16000, //44100,256000
+      //bitsPerSecond: 16000 //2628000,
+    };
 
-    // source.connect(processor);
-    // processor.connect(context.destination);
+    const context = new AudioContext();
+    const source = context.createMediaStreamSource(stream);
+    const processor = context.createScriptProcessor(1024, 1, 1);
 
-    // processor.onaudioprocess = function(e) {
-    //   // Do something with the data, e.g. convert it to WAV
-    //   console.log(e.inputBuffer);
+    source.connect(processor);
+    processor.connect(context.destination);
+
+    processor.onaudioprocess = function(e) {
+      // Do something with the data, e.g. convert it to WAV
+      console.log(e.inputBuffer);
+      var buffer = [];
+      for (var channel = 0; channel < this.config.numChannels; channel++) {
+          buffer.push(e.inputBuffer.getChannelData(channel));
+      }
+    };
+
+    //mediaRecorder = new window.MediaRecorder(stream, options);
+        
+    //.log('sampleRate', mediaRecorder.em);
+    //console.log('audioBitsPerSecond', mediaRecorder.prototype.audioBitsPerSecond);
+    //mediaRecorder.prototype.options.audioBitsPerSecond = 8000
+    // mediaRecorder.addEventListener('dataavailable', e => {
+    //   if (e.data.size > 0) {
+    //     recordedChunks.push(e.data);     
+    //   }
+    //   if (mediaRecorder.state == 'inactive') {
+	  //         // convert stream data chunks to a 'webm' audio format as a blob
+            
+	  //         // const blob = new Blob(recordedChunks);
+
+    //         // playAudio(blob);
+    //         // recordedChunks = [];
+    //         mediaRecorder.start();
+	  //   }
+    // });
+
+    //  mediaRecorder.addEventListener('stop', e => {
+    //   // downloadLink.href = URL.createObjectURL(new Blob(recordedChunks));
+    //   // downloadLink.download = 'acetest.wav';
+    //   const blob = new Blob(recordedChunks);
+    //         playAudio(blob);
+    //         recordedChunks = [];
+    //   //mediaRecorder.start();
+    //   console.log('stop', e);      
+    // });
+
+    // mediaRecorder.onresume = (e) => {
+    //   console.log('onresume', e);
     // };
 
+    // mediaRecorder.onstart = (e) => {
+    //   console.log('onstart', e);
+    // };
 
-    const options = {mimeType: 'audio/webm'};
-    mediaRecorder = new window.MediaRecorder(stream, options);
+    // mediaRecorder.onpause = (e) => {
+    //   console.log('onpause', e);
+    // };
 
-    mediaRecorder.addEventListener('dataavailable', e => {
-      if (e.data.size > 0) {
-        recordedChunks.push(e.data);
-      }
-      console.log('dataavailable');
-      if(shouldStop === true && stopped === false) {
-        mediaRecorder.stop();
-        setStopped(true);
-      }
-    });
+    // mediaRecorder.onerror = (e) => {
+    //   console.log('onerror', e);
+    // };
 
-    mediaRecorder.addEventListener('stop', () => {
-      console.log('stop');
-      const audio = new Blob(recordedChunks);      
-      playAudio(audio);
-      setShouldStop(false);
-      mediaRecorder.start();
-    });
-
-    setMediaRecorder(mediaRecorder);
-    mediaRecorder.start();
-    setTimeout(() => {
-      recognize();    
-    }, 2000);    
+    // setMediaRecorder(mediaRecorder);
+    // mediaRecorder.start();
+    // setTimeout(() => {
+    //   recognize();    
+    // }, 2000);    
   };
 
   useEffect(()=>{
     const audioConstraints = {
             noiseSuppression: true,
-            sampleRate: 48000,
+            sampleRate: 16000,
             echoCancellation: true,
             channelCount: 1,
             autoGainControl: true,
-            volume: 0
+            volume: 0.5
         };
 
-    navigator.mediaDevices.getUserMedia({ audio: audioConstraints, video: false })
+    navigator.mediaDevices.getUserMedia({audio: audioConstraints, video: false})
     .then(handleSuccess)
     .catch((err)=> {
       console.log('ERRO', err);
@@ -133,11 +125,11 @@ const SpeechWithRecorderAudioContext = (props) => {
   },[]);
 
   const recognize = () => {
-    setShouldStop(true);
+    mediaRecorder.stop();
     setTimeout(() => {
       recognize();    
     }, 2000); 
-  }
+  }  
 
   
   return (<div>Recorder Audio: SpeechWithRecorderAudioContext</div>);
