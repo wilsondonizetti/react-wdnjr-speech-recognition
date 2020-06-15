@@ -29,7 +29,7 @@ const SpeechWithRecorderAudio = (props) => {
 
  const handleSuccess = (stream) => {
     
-    const ext = ['audio/mpeg', 'audio/wav', 'audio/webm', 'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
+    const ext = ['audio/mpeg', 'audio/wav', 'audio/webm\;codecs=pcm','audio/webm\;codecs=opus',  'audio/ogg'].filter(ex=> MediaRecorder.isTypeSupported(ex))[0];    
     console.log('ext', ext);
 
     const options = { 
